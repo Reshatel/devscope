@@ -1,4 +1,5 @@
-import { GitHubUser, GitHubRepo } from "@/types/github";
+import { GitHubUser, GitHubRepo, GitHubSearchResponse } from "@/types/github";
+
 
 const BASE_URL = "https://api.github.com";
 
@@ -29,4 +30,19 @@ export async function fetchGitHubRepos(username: string): Promise<GitHubRepo[]> 
 
   const repos: GitHubRepo[] = await response.json();
   return repos.filter((repo) => !repo.fork);
+}
+
+export async function searchGitHubUsers(
+  query: string
+): Promise<GitHubSearchResponse["items"]> {
+  const response = await fetch(
+    `${BASE_URL}/search/users?q=${encodeURIComponent(query)}&per_page=5`
+  );
+
+  if (!response.ok) {
+    return [];
+  }
+
+  const data: GitHubSearchResponse = await response.json();
+  return data.items;
 }

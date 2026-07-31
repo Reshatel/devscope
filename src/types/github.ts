@@ -19,3 +19,13 @@ export interface GitHubRepo {
   updated_at: string;
   fork: boolean;
 }
+
+export interface GitHubSearchUser {
+  id: number;
+  login: string;
+  avatar_url: string;
+}
+
+export interface GitHubSearchResponse {
+  items: GitHubSearchUser[];
+}

@@ -11,6 +11,7 @@ import { getLanguageDistribution } from "@/lib/chartUtils";
 import { LanguageChart } from "@/components/LanguageChart";
 import { getComparisonData } from "@/lib/chartUtils";
 import { ComparisonChart } from "@/components/ComparisonChart";
+import { useGitHubSearchSuggestions } from "@/lib/useGitHubSearchSuggestions";
 
 export function ProfileSearch() {
   const [inputValue, setInputValue] = useState("");
@@ -19,19 +20,21 @@ export function ProfileSearch() {
   const [languageFilter, setLanguageFilter] = useState<string | null>(null);
   const [compareInput, setCompareInput] = useState("");
   const [compareUsername, setCompareUsername] = useState("");
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isCompareInputFocused, setIsCompareInputFocused] = useState(false);
 
 
   const { data: compareUser, isLoading: compareUserLoading } =
   useGitHubUser(compareUsername);
-  const { data: compareRepos } = useGitHubRepos(compareUsername);
-
+    const { data: compareRepos } = useGitHubRepos(compareUsername);
   const { data: user, isLoading: userLoading, error: userError } =
     useGitHubUser(searchedUsername);
   const { data: repos, isLoading: reposLoading } =
     useGitHubRepos(searchedUsername);
-
+    const { data: suggestions } = useGitHubSearchSuggestions(inputValue);
   const { favorites, addFavorite, removeFavorite, isFavorite } =
   useFavoritesStore();
+  const { data: compareSuggestions } = useGitHubSearchSuggestions(compareInput);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -86,21 +89,48 @@ const compareStats =
   </div>
 )}
 
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Введи GitHub username (напр. torvalds)"
-          className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          type="submit"
-          className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-        >
-          Шукати
-        </button>
-      </form>
+      <form onSubmit={handleSubmit} className="relative flex gap-2">
+  <input
+    type="text"
+    value={inputValue}
+    onChange={(e) => setInputValue(e.target.value)}
+    onFocus={() => setIsInputFocused(true)}
+    onBlur={() => setTimeout(() => setIsInputFocused(false), 150)}
+    placeholder="Введи GitHub username (напр. torvalds)"
+    className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+  <button
+    type="submit"
+    className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+  >
+    Шукати
+  </button>
+
+  {isInputFocused && suggestions && suggestions.length > 0 && (
+    <ul className="absolute top-full left-0 z-10 mt-1 w-full max-w-[calc(100%-88px)] rounded-lg border border-gray-200 bg-white shadow-lg">
+      {suggestions.map((suggestion) => (
+        <li key={suggestion.id}>
+          <button
+            type="button"
+            onClick={() => {
+              setInputValue(suggestion.login);
+              setSearchedUsername(suggestion.login);
+              setIsInputFocused(false);
+            }}
+            className="flex w-full items-center gap-2 px-4 py-2 text-left hover:bg-gray-50"
+          >
+            <img
+              src={suggestion.avatar_url}
+              alt={suggestion.login}
+              className="h-6 w-6 rounded-full"
+            />
+            <span className="text-sm">{suggestion.login}</span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  )}
+</form>
 
       {userLoading && (
         <p className="mt-4 text-gray-500">Завантаження...</p>
@@ -215,21 +245,50 @@ const compareStats =
     Порівняти з іншим профілем
   </h3>
 
-  <form onSubmit={handleCompareSubmit} className="mt-3 flex gap-2">
-    <input
-      type="text"
-      value={compareInput}
-      onChange={(e) => setCompareInput(e.target.value)}
-      placeholder="Введи другий username для порівняння"
-      className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-    />
-    <button
-      type="submit"
-      className="rounded-lg bg-gray-800 px-4 py-2 text-white hover:bg-gray-900"
-    >
-      Порівняти
-    </button>
-  </form>
+  <form onSubmit={handleCompareSubmit} className="relative mt-3 flex gap-2">
+  <input
+    type="text"
+    value={compareInput}
+    onChange={(e) => setCompareInput(e.target.value)}
+    onFocus={() => setIsCompareInputFocused(true)}
+    onBlur={() => setTimeout(() => setIsCompareInputFocused(false), 150)}
+    placeholder="Введи другий username для порівняння"
+    className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+  <button
+    type="submit"
+    className="rounded-lg bg-gray-800 px-4 py-2 text-white hover:bg-gray-900"
+  >
+    Порівняти
+  </button>
+
+  {isCompareInputFocused &&
+    compareSuggestions &&
+    compareSuggestions.length > 0 && (
+      <ul className="absolute top-full left-0 z-10 mt-1 w-full max-w-[calc(100%-104px)] rounded-lg border border-gray-200 bg-white shadow-lg">
+        {compareSuggestions.map((suggestion) => (
+          <li key={suggestion.id}>
+            <button
+              type="button"
+              onClick={() => {
+                setCompareInput(suggestion.login);
+                setCompareUsername(suggestion.login);
+                setIsCompareInputFocused(false);
+              }}
+              className="flex w-full items-center gap-2 px-4 py-2 text-left hover:bg-gray-50"
+            >
+              <img
+                src={suggestion.avatar_url}
+                alt={suggestion.login}
+                className="h-6 w-6 rounded-full"
+              />
+              <span className="text-sm">{suggestion.login}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    )}
+</form>
 
 {compareInput.trim().toLowerCase() === searchedUsername.toLowerCase() &&
   compareInput.trim().length > 0 && (
