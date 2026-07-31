@@ -6,6 +6,11 @@ import { useFavoritesStore } from "@/store/useFavoritesStore";
 import { formatStars } from "@/lib/formatStars";
 import { sortRepos, filterByLanguage, getUniqueLanguages, SortOption } from "@/lib/repoUtils";
 import { computeProfileStats } from "@/lib/compareUtils";
+import { ProfileSkeleton } from "@/components/ProfileSkeleton";
+import { getLanguageDistribution } from "@/lib/chartUtils";
+import { LanguageChart } from "@/components/LanguageChart";
+import { getComparisonData } from "@/lib/chartUtils";
+import { ComparisonChart } from "@/components/ComparisonChart";
 
 export function ProfileSearch() {
   const [inputValue, setInputValue] = useState("");
@@ -33,10 +38,16 @@ export function ProfileSearch() {
     setSearchedUsername(inputValue.trim());
   }
 
-  function handleCompareSubmit(e: React.FormEvent) {
+ function handleCompareSubmit(e: React.FormEvent) {
   e.preventDefault();
-  setCompareUsername(compareInput.trim());
+  const trimmed = compareInput.trim();
+  if (trimmed.toLowerCase() === searchedUsername.toLowerCase()) {
+    return;
+  }
+  setCompareUsername(trimmed);
 }
+
+const languageData = repos ? getLanguageDistribution(repos) : [];
 
 const processedRepos = repos
   ? sortRepos(filterByLanguage(repos, languageFilter), sortBy)
@@ -49,6 +60,11 @@ const compareStats =
   compareUser && compareRepos
     ? computeProfileStats(compareUser, compareRepos)
     : null;
+
+    const comparisonChartData =
+  mainStats && compareStats && user && compareUser
+    ? getComparisonData(user.login, mainStats, compareUser.login, compareStats)
+    : [];
 
   return (
     <div className="max-w-2xl mx-auto p-6">
@@ -129,6 +145,15 @@ const compareStats =
         </div>
       )}
 
+      {repos && repos.length > 0 && (
+  <div className="mt-6 rounded-lg border border-gray-200 p-4">
+    <h3 className="mb-2 text-sm font-semibold text-gray-700">
+      Розподіл мов програмування
+    </h3>
+    <LanguageChart data={languageData} />
+  </div>
+)}
+
       {reposLoading && <p className="mt-4 text-gray-500">Завантаження репозиторіїв...</p>}
 
       {repos && (
@@ -206,11 +231,17 @@ const compareStats =
     </button>
   </form>
 
-  {compareUserLoading && (
-    <p className="mt-3 text-gray-500">Завантаження...</p>
+{compareInput.trim().toLowerCase() === searchedUsername.toLowerCase() &&
+  compareInput.trim().length > 0 && (
+    <p className="mt-2 text-sm text-amber-600">
+      Введи інший профіль для порівняння — не той самий
+    </p>
   )}
 
+  {compareUserLoading && <ProfileSkeleton />}
+
   {mainStats && compareStats && user && compareUser && (
+    <>
     <div className="mt-6 grid grid-cols-2 gap-4">
       <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
         <h4 className="font-semibold text-gray-900">{user.login}</h4>
@@ -254,8 +285,20 @@ const compareStats =
             <dd className="font-medium">{compareStats.topLanguage ?? "—"}</dd>
           </div>
         </dl>
-      </div>
+     </div>
     </div>
+
+    <div className="mt-6">
+      <h4 className="mb-2 text-sm font-semibold text-gray-700">
+        Порівняння метрик
+      </h4>
+      <ComparisonChart
+        data={comparisonChartData}
+        mainUsername={user.login}
+        compareUsername={compareUser.login}
+      />
+    </div>
+    </>
   )}
 </div>
     </div>
