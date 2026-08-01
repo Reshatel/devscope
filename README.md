@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DevScope
 
-## Getting Started
+Analyze and compare GitHub profiles in seconds.
 
-First, run the development server:
+🔗 **Live demo:** [devscope-topaz.vercel.app](https://devscope-topaz.vercel.app)
 
-```bash
+## Overview
+
+DevScope is a fast analyzer for public GitHub profiles. It provides overall stats, programming language distribution, and a side-by-side comparison mode for developers. 
+
+I built this to demonstrate modern frontend practices: consuming a real-world REST API, handling edge cases and errors, request caching, strict typing, testing, and a custom UI/UX.
+
+## Features
+
+- 🔍 GitHub profile search with debounced live autocomplete
+- 📊 Profile cards showing avatar, bio, repository count, and followers
+- 📁 Repository list with language filters and sorting (by stars, last updated, or name)
+- 🥧 Pie chart for programming language distribution
+- ⚖️ Side-by-side profile comparison with bar charts (independent scales per metric)
+- ⭐ Favorite profiles (persisted locally)
+- ⌘K Command palette for quick search and jumping to favorites
+- 🎨 Custom "git diff" themed animations (boot sequence, canvas cursor overlay, typewriter headers)
+
+## Tech Stack
+
+| Category | Technology |
+|---|---|
+| Framework | Next.js 15 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 |
+| Data Fetching | TanStack Query |
+| State Management | Zustand (with persist) |
+| Charts | Recharts |
+| Animations | Motion (Framer Motion) |
+| Testing | Vitest + React Testing Library |
+| Deployment | Vercel |
+
+## Local Development
+
+\`\`\`bash
+git clone https://github.com/Reshatel/devscope.git
+cd devscope
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+\`\`\`
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Running Tests
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+\`\`\`bash
+npm run test -- --run
+\`\`\`
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+\`\`\`text
+src/
+├── app/            # Next.js App Router (pages, layouts, global styles)
+├── components/     # React components
+├── lib/            # Business logic: fetch requests, custom hooks, pure utilities
+├── store/          # Zustand stores
+└── types/          # TypeScript interfaces for the GitHub API
+\`\`\`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Business logic is intentionally decoupled from the UI. Functions inside `lib/` are framework-agnostic and unit-tested independently of the React components that consume them.
