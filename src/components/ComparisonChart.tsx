@@ -1,5 +1,7 @@
 "use client";
 
+
+
 import {
   BarChart,
   Bar,
@@ -10,6 +12,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { ComparisonDataPoint } from "@/lib/chartUtils";
+import { ChartTooltip } from "@/components/ChartTooltip";
 
 interface ComparisonChartProps {
   data: ComparisonDataPoint[];
@@ -43,20 +46,11 @@ export function ComparisonChart({
             </p>
             <ResponsiveContainer width="100%" height={140}>
               <BarChart data={[point]}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="metric" tick={false} axisLine={false} />
-                <YAxis width={32} tick={{ fontSize: 11 }} />
-                <Tooltip />
-                <Bar
-                  dataKey={mainUsername}
-                  fill="#3b82f6"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar
-                  dataKey={compareUsername}
-                  fill="#94a3b8"
-                  radius={[4, 4, 0, 0]}
-                />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#2A3B2F" />
+                <YAxis width={32} tick={{ fontSize: 11, fill: "#8B9C8F" }} />
+                <Tooltip content={<ChartTooltip />} />
+                <Bar dataKey={mainUsername} fill="#E8A33D" radius={[4, 4, 0, 0]} />
+                <Bar dataKey={compareUsername} fill="#5B7FDB" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
